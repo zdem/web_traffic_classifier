@@ -5,7 +5,7 @@ def extract_features(HTTP_request, debug = False):
 	features = [0,0,0,0,0]
 
 	# Extract the full path
-	path = re.match("(http.*) ",HTTP_request).group()
+	path = re.match('(http.*) ',HTTP_request).group()
 	path = re.sub(' ','',path)
 
 	# Extract the arguments
@@ -57,9 +57,9 @@ def extract_features(HTTP_request, debug = False):
 # TODO??? make the file a command-line argument, 2nd cmd argument should be the label: 0 or 1
 with open('input_data/normalTrafficAll.txt', 'r') as input_file: data = input_file.read()
 
-# Parse the raw data obtaining a two strings per request: the first string contains GET or POST and the 2nd one the body of the request
+# Split the raw data into individual HTTP requests using 'GET ' and 'POST ' as delimiters
 normal_HTTP_requests = re.split('GET |POST ', data)
-normal_HTTP_requests.pop(0); #Remove the first string which is always empty
+normal_HTTP_requests.pop(0); #The first string is always empty
 
 num_normal_HTTP_requests = len(normal_HTTP_requests)
 print "Found ",num_normal_HTTP_requests," HTTP requests\n\n"
