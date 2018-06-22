@@ -1,12 +1,12 @@
 import re
+import numpy as np
 
 # Extract five features from a single HTTP_request as described in Althubiti et al paper.
 def extract_features(HTTP_request, debug = False):
-	features = [0,0,0,0,0]
+	features = np.zeros(5)
 
 	# Extract the full path
-	path = re.match('(http.*) ',HTTP_request).group()
-	path = re.sub(' ','',path)
+	path = re.match('(http.*) ',HTTP_request).group(1)
 
 	# Extract the arguments
 	r = re.search('Content-Length:\s*(\d+)',HTTP_request)
@@ -54,18 +54,41 @@ def extract_features(HTTP_request, debug = False):
 
 	return features
 
-# TODO??? make the file a command-line argument, 2nd cmd argument should be the label: 0 or 1
-with open('input_data/normalTrafficAll.txt', 'r') as input_file: data = input_file.read()
+with open('input_data/normalTrafficAll.txt', 'r') as input_file: data_normal = input_file.read()
+with open('input_data/anomalousTrafficTest.txt', 'r') as input_file: data_anomalous = input_file.read()
 
 # Split the raw data into individual HTTP requests using 'GET ' and 'POST ' as delimiters
-normal_HTTP_requests = re.split('GET |POST ', data)
+
+normal_HTTP_requests = re.split('GET |POST ', data_normal)
 normal_HTTP_requests.pop(0); #The first string is always empty
-
 num_normal_HTTP_requests = len(normal_HTTP_requests)
-print "Found ",num_normal_HTTP_requests," HTTP requests\n\n"
 
-normal_HTTP_features = []
+anomalous_HTTP_requests = re.split('GET |POST ', data_anomalous)
+anomalous_HTTP_requests.pop(0); #The first string is always empty
+num_anomalous_HTTP_requests = len(anomalous_HTTP_requests)
+
+print "Found ",num_normal_HTTP_requests," normal HTTP requests"
+print "Found ",num_anomalous_HTTP_requests," anomalous HTTP requests\n\n"
+
+# Generate the training data set with two labels: normal = 0, anomalous = 1
+
+n_samples = num_normal_HTTP_requests + num_anomalous_HTTP_requests
+n_features = 5
+
+X = np.zeros([n_samples,n_features])
+y = np.zeros(n_samples)
+
+i = -1
 for HTTP_request in normal_HTTP_requests:
-	normal_HTTP_features.append(extract_features(HTTP_request))
+        i = i + 1
+        X[i,:] = extract_features(HTTP_request)
+        y[i] = 0
+
+for HTTP_request in anomalous_HTTP_requests:
+        i = i + 1
+        X[i,:] = extract_features(HTTP_request)
+        y[i] = 1
 
 # TODO clean up the features removing the redundant POST/GET equivalent vectors using a moveable window: the equivalent entries follow each other.
+
+np.savez('training_data.npz', X, y)
