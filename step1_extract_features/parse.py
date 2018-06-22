@@ -11,26 +11,29 @@ def extract_features(HTTP_request, debug = False):
 	# Extract the arguments
 	r = re.search('Content-Length:\s*(\d+)',HTTP_request)
 	if (r):
-		if (debug):
-			print "POST\n"
-		# This is a POST request: get the arguments from the end of the request
-		argument_len = int(r.group(1))
-		arguments = HTTP_request[len(HTTP_request)-argument_len-4:len(HTTP_request)-4]
+		# This is a POST or a PUT request: get the arguments from the line following 'Content-Length'
+                typ = 'POST or PUT'
+                arguments = re.sub('\n|\r','',HTTP_request[r.end(1)+1:])
+		argument_len = len(arguments)
+
+                if argument_len != int(r.group(1)):
+                    print HTTP_request
+                    print arguments
+                    print "error in parsing POST or PUT arguments"
+                    exit()
 
 		# Generate the path as in GET request
 		path = path + '?' + arguments
 	else:
-		if (debug):
-			print "GET\n"
-		# This is a GET request: get the arguments from the path
+		# This is a GET request: get the arguments directly from the path
+                typ = 'GET '
 		arguments = re.search('\?(.*)',path)
 		if (arguments):
 			arguments = arguments.group(1)
 		else:
 			arguments = ''
 
-	arguments = re.sub('\n','', arguments)
-	arguments = re.sub('\r','', arguments)
+	arguments = re.sub('\n|\r','', arguments)
 
 	#1. Length of the request
 	features[0] = len(HTTP_request)
@@ -46,10 +49,11 @@ def extract_features(HTTP_request, debug = False):
 
 	#5. Number of special chars in the path
 	features[4] = len(re.findall('\W', path))
-	
+
 	if (debug):
-		print "Path: ",path
-		print "Arguments: ", arguments
+                print "\n" + typ
+		print "Path:", path
+		print "Arguments:", arguments
 		print features
 
 	return features
@@ -59,36 +63,26 @@ with open('input_data/anomalousTrafficTest.txt', 'r') as input_file: data_anomal
 
 # Split the raw data into individual HTTP requests using 'GET ' and 'POST ' as delimiters
 
-normal_HTTP_requests = re.split('GET |POST ', data_normal)
-normal_HTTP_requests.pop(0); #The first string is always empty
-num_normal_HTTP_requests = len(normal_HTTP_requests)
+normal_HTTP_requests = re.split('GET |POST |PUT ', data_normal)
+normal_HTTP_requests.pop(0)
 
-anomalous_HTTP_requests = re.split('GET |POST ', data_anomalous)
-anomalous_HTTP_requests.pop(0); #The first string is always empty
-num_anomalous_HTTP_requests = len(anomalous_HTTP_requests)
+anomalous_HTTP_requests = re.split('GET |POST |PUT ', data_anomalous)
+anomalous_HTTP_requests.pop(0)
 
-print "Found ",num_normal_HTTP_requests," normal HTTP requests"
-print "Found ",num_anomalous_HTTP_requests," anomalous HTTP requests\n\n"
+print "Found ",len(normal_HTTP_requests)," normal HTTP requests"
+print "Found ",len(anomalous_HTTP_requests)," anomalous HTTP requests\n"
 
-# Generate the training data set with two labels: normal = 0, anomalous = 1
+# Generate the training data set (X,y) with two y labels: normal = 0, anomalous = 1
 
-n_samples = num_normal_HTTP_requests + num_anomalous_HTTP_requests
-n_features = 5
-
-X = np.zeros([n_samples,n_features])
-y = np.zeros(n_samples)
-
-i = -1
+X = []
+y = []
 for HTTP_request in normal_HTTP_requests:
-        i = i + 1
-        X[i,:] = extract_features(HTTP_request)
-        y[i] = 0
+        X.append(extract_features(HTTP_request))
+        y.append(0)
 
 for HTTP_request in anomalous_HTTP_requests:
-        i = i + 1
-        X[i,:] = extract_features(HTTP_request)
-        y[i] = 1
+        X.append(extract_features(HTTP_request))
+        y.append(1)
 
-# TODO clean up the features removing the redundant POST/GET equivalent vectors using a moveable window: the equivalent entries follow each other.
-
+print "Number of samples = ", len(y)
 np.savez('training_data.npz', X, y)
