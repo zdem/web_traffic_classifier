@@ -1,0 +1,2 @@
+Standard pip modules: re, numpy
+Additional module: sklearn (scikit-sklearn)

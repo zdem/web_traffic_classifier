@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 
 training_data = np.load('../step1_extract_features/training_data.npz')
+#training_data = np.load('../training_data.npz')
 X = training_data['arr_0']
 y = training_data['arr_1']
 
@@ -29,6 +30,7 @@ model.fit(Xquad, y)
 
 preds = model.predict(Xquad)
 print (preds == y).mean()
+print model.score(Xquad,y)
 
 
 # Remove repetitive entries from the training data and repeat the fit
