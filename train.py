@@ -4,7 +4,7 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 
-training_data = np.load('../step1_extract_features/training_data.npz')
+training_data = np.load('training_data.npz')
 X = training_data['arr_0']
 y = training_data['arr_1']
 
