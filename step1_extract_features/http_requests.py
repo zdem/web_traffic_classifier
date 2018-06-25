@@ -92,35 +92,16 @@ class dataset:
 
 	# Generate two sets of data (training, testing) splitting the whole data set according to the fraction of training data required and
 	# assign a label to the data too.
-	def extract_labelled_HTTP_features(self,fraction_training,label):
+	def extract_labelled_HTTP_features(self,label):
 
-		X_training = []
-		y_training = []
+		X = []
+		y = []
 
-		X_testing = []
-		y_testing = []
+		for HTTP_request in self.HTTP_requests:
+			X.append(extract_features(HTTP_request))
+			y.append(label)
 
-		if fraction_training < 0 or fraction_training > 1:
-			print "Error on input: fraction_training not in range [0,1]"
-			exit()
-
-		fraction_test = 1 - fraction_training
-
-		last_training_request = int(self.n_requests * fraction_training)
-
-		for i,HTTP_request in enumerate(self.HTTP_requests):
-
-			HTTP_features = extract_features(HTTP_request)
-
-			if i+1 <= last_training_request:
-				X_training.append(HTTP_features)
-				y_training.append(label)
-			else:
-				X_testing.append(HTTP_features)
-				y_testing.append(label)
-
-		print "\nData from",self.path_to_file,"have been split into a fraction of",fraction_training, "for training and a fraction of ",fraction_test,"for testing"
+		print "\nData from",self.path_to_file,"have been exported"
                 print "Label assigned:", label
-		print "Total number of training requests obtained:",last_training_request
 
-		return X_training, y_training, X_testing, y_testing
+		return X, y
