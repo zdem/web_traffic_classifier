@@ -1,2 +1,3 @@
-Standard Python 2 modules: re, numpy, urlparse
-Additional module: sklearn (scikit-sklearn)
+Code tested with Python 2.7.15rc1
+
+modules required: re, numpy, urlparse, scikit-learn

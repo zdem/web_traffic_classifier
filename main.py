@@ -1,19 +1,28 @@
+import http_requests
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
-from sklearn import preprocessing
 
-training_data = np.load('training_data.npz')
-X = training_data['arr_0']
-y = training_data['arr_1']
+normal_requests = http_requests.dataset('input_data/normalTrafficAll.txt')
+X_normal, y_normal = normal_requests.extract_labelled_HTTP_features(0)
+
+anomalous_requests = http_requests.dataset('input_data/anomalousTrafficTest.txt')
+X_anomalous, y_anomalous = anomalous_requests.extract_labelled_HTTP_features(1)
+
+X = np.concatenate((X_normal,X_anomalous),axis=0)
+y = np.concatenate((y_normal,y_anomalous),axis=0)
+
+print X
+print y
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.6, random_state=0)
 
-print "Data set read from disk:"
 print "Number of samples = ",len(y)
 print "Number of features = ",len(X[0,:])
-
+#
+# Model 1: linear features
+#
 model = LogisticRegression(C=0.01) #regularization using C does not affect the results too much
 model.fit(X_train, y_train)
 
@@ -23,7 +32,9 @@ print(classification_report(y_test, y_pred))
 print model.coef_
 print model.intercept_
 
-# Add all unique quadratic terms
+# 
+# Model 2: linear + quadratic features
+#
 
 Xquad = X_train
 col = np.zeros(len(y))
@@ -41,7 +52,9 @@ print(classification_report(y_train, y_pred))
 print model.coef_
 print model.intercept_
 
+#
 # Remove repetitive entries from the training data and repeat the fit
+#
 
 Xy = np.column_stack((X_train,y_train))
 Xy = np.asarray(np.unique(Xy, axis=0))
@@ -55,6 +68,10 @@ print "Number of features = ", n_features
 y = Xy[:,n_features]
 X_train = np.delete(Xy,n_features,1)
 
+# 
+# Model 3: linear features, unique set of training points
+#
+
 model = LogisticRegression(C=0.01) #regularization using C does not affect the results too much
 model.fit(X_train, y)
 
@@ -64,7 +81,9 @@ print(classification_report(y_test, y_pred))
 print model.coef_
 print model.intercept_
 
-# Add all unique quadratic terms
+#
+# Model 4: linear + quadratic features, unique set of training points
+#
 
 Xquad = X_train
 col = np.zeros(len(y))

@@ -90,8 +90,7 @@ class dataset:
 		self.n_requests = len(self.HTTP_requests)
 		print "\nFound ", self.n_requests, " HTTP requests in file: ", path_to_file
 
-	# Generate two sets of data (training, testing) splitting the whole data set according to the fraction of training data required and
-	# assign a label to the data too.
+	# Generate the HTTP features for all HTTP requests and label them.
 	def extract_labelled_HTTP_features(self,label):
 
 		X = []
